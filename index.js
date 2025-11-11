@@ -26,7 +26,7 @@ app.get("/", (req, res) => {
 //connection to database
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     app.post("/user", async (req, res) => {
       const db = client.db("userDB");
       const userColl = db.collection("users");
@@ -47,7 +47,7 @@ async function run() {
     app.get("/cars", async (req, res) => {
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
-      const result = await carColl.find({}).toArray();
+      const result = await carColl.find({}).sort({_id : -1}).toArray();
       res.send(result);
     });
     app.get("/featured", async (req, res) => {
@@ -145,10 +145,10 @@ async function run() {
       res.send(result);
     });
     //testing
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
   }
 }
