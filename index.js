@@ -34,7 +34,6 @@ async function run() {
       const userExist = await userColl.findOne(query);
       console.log(req.body.email);
       if (userExist) {
-        console.log("user already exist");
         return;
       }
       const result = await userColl.insertOne(req.body);
@@ -53,7 +52,7 @@ async function run() {
     app.get("/featured", async (req, res) => {
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
-      const result = await carColl.find({}).limit(6).toArray();
+      const result = await carColl.find({}).sort({isBooked: 1, _id: -1}).limit(6).toArray();
       res.send(result);
     });
     app.get("/top", async (req, res) => {
