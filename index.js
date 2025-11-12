@@ -3,11 +3,35 @@ const cors = require("cors");
 const app = express();
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-
 const PORT = process.env.PORT || 5000;
+const admin = require("firebase-admin");
+const serviceAccount = require("./rent-wheel-firebase.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 //middlewire
 app.use(cors());
 app.use(express.json());
+const logger = async (req, res, next) => {
+  if (!req.headers.authorization) {
+    res.send({ message: "Unauthorized Access" });
+    res.error({ message: "Unauthorised Access" });
+  }
+  const token = req.headers.authorization.split(" ")[1];
+  if (!token) {
+    res.send({ message: "Unauthorized Access" });
+    res.error({ message: "Unauthorised Access" });
+  }
+  const userInfo = await admin.auth().verifyIdToken(token);
+  if (!userInfo.email == req.query.email) {
+    res.send({ message: "Unauthorized Access" });
+    res.error({ message: "Unauthorised Access" });
+  } else {
+    next();
+  }
+};
+
 //DataBase
 const uri = process.env.DB_URI;
 const client = new MongoClient(uri, {
@@ -46,19 +70,27 @@ async function run() {
     app.get("/cars", async (req, res) => {
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
-      const result = await carColl.find({}).sort({_id : -1}).toArray();
+      const result = await carColl.find({}).sort({ _id: -1 }).toArray();
       res.send(result);
     });
     app.get("/featured", async (req, res) => {
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
-      const result = await carColl.find({}).sort({isBooked: 1, _id: -1}).limit(6).toArray();
+      const result = await carColl
+        .find({})
+        .sort({ isBooked: 1, _id: -1 })
+        .limit(6)
+        .toArray();
       res.send(result);
     });
     app.get("/top", async (req, res) => {
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
-      const result = await carColl.find({}).sort({rent: -1}).limit(3).toArray();
+      const result = await carColl
+        .find({})
+        .sort({ rent: -1 })
+        .limit(3)
+        .toArray();
       res.send(result);
     });
     app.get("/car/:id", async (req, res) => {
@@ -122,7 +154,7 @@ async function run() {
       console.log(result);
     });
 
-    app.get("/mybookedcars", async (req, res) => {
+    app.get("/mybookedcars", logger, async (req, res) => {
       const email = req.query.email;
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
