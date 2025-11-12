@@ -11,7 +11,13 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 //middlewire
-app.use(cors());
+app.use(
+  cors({
+    origin: ["https://rent-wheel.netlify.app"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 const logger = async (req, res, next) => {
   if (!req.headers.authorization) {
@@ -58,7 +64,7 @@ async function run() {
       const result = await userColl.insertOne(req.body);
       res.send(result);
     });
- 
+
     app.get("/cars", async (req, res) => {
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
@@ -100,7 +106,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/listings/",logger, async (req, res) => {
+    app.get("/listings/", logger, async (req, res) => {
       const query = req.query.email;
       console.log(query);
       const db = client.db("carsDB");
@@ -125,7 +131,7 @@ async function run() {
       );
       res.send(booking);
     });
-    app.patch("/updatecar", logger,async (req, res) => {
+    app.patch("/updatecar", logger, async (req, res) => {
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
       const car = req.body;
@@ -157,7 +163,7 @@ async function run() {
       const result = await carColl.find({ _id: { $in: carIds } }).toArray();
       res.send(result);
     });
-    app.delete("/deletecar", logger,async (req, res) => {
+    app.delete("/deletecar", logger, async (req, res) => {
       const id = req.query.id;
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
