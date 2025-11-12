@@ -24,7 +24,7 @@ const logger = async (req, res, next) => {
     res.error({ message: "Unauthorised Access" });
   }
   const userInfo = await admin.auth().verifyIdToken(token);
-  if (!userInfo.email == req.query.email) {
+  if (userInfo.email !== req.query.email) {
     res.send({ message: "Unauthorized Access" });
     res.error({ message: "Unauthorised Access" });
   } else {
@@ -64,9 +64,7 @@ async function run() {
       res.send(result);
       console.log(result);
     });
-    app.get("/carss", (req, res) => {
-      res.send("getting ths");
-    });
+ 
     app.get("/cars", async (req, res) => {
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
@@ -108,7 +106,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/listings/", async (req, res) => {
+    app.get("/listings/",logger, async (req, res) => {
       const query = req.query.email;
       console.log(query);
       const db = client.db("carsDB");
