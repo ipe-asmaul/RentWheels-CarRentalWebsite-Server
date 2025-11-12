@@ -5,7 +5,7 @@ require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const PORT = process.env.PORT || 5000;
 const admin = require("firebase-admin");
-const serviceAccount = require("./rent-wheel-firebase.json");
+const serviceAccount = require(`./${process.env.AUTH_FILE}`);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -15,18 +15,15 @@ app.use(cors());
 app.use(express.json());
 const logger = async (req, res, next) => {
   if (!req.headers.authorization) {
-    res.send({ message: "Unauthorized Access" });
-    res.error({ message: "Unauthorised Access" });
+    return res.send({ message: "Unauthorized Access" });
   }
-  const token = req.headers.authorization.split(" ")[1];
+  const token = req.headers?.authorization.split(" ")[1];
   if (!token) {
-    res.send({ message: "Unauthorized Access" });
-    res.error({ message: "Unauthorised Access" });
+    return res.send({ message: "Unauthorized Access" });
   }
   const userInfo = await admin.auth().verifyIdToken(token);
   if (userInfo.email !== req.query.email) {
     res.send({ message: "Unauthorized Access" });
-    res.error({ message: "Unauthorised Access" });
   } else {
     next();
   }
@@ -43,7 +40,6 @@ const client = new MongoClient(uri, {
 });
 
 app.get("/", (req, res) => {
-  console.log(process.env.PORT);
   res.send("Hello from server, RentWheel");
 });
 
@@ -56,13 +52,11 @@ async function run() {
       const userColl = db.collection("users");
       const query = { email: req.body.email };
       const userExist = await userColl.findOne(query);
-      console.log(req.body.email);
       if (userExist) {
         return;
       }
       const result = await userColl.insertOne(req.body);
       res.send(result);
-      console.log(result);
     });
  
     app.get("/cars", async (req, res) => {
@@ -131,7 +125,7 @@ async function run() {
       );
       res.send(booking);
     });
-    app.patch("/updatecar", async (req, res) => {
+    app.patch("/updatecar", logger,async (req, res) => {
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
       const car = req.body;
@@ -149,7 +143,6 @@ async function run() {
         }
       );
       res.send(result);
-      console.log(result);
     });
 
     app.get("/mybookedcars", logger, async (req, res) => {
@@ -164,7 +157,7 @@ async function run() {
       const result = await carColl.find({ _id: { $in: carIds } }).toArray();
       res.send(result);
     });
-    app.delete("/deletecar", async (req, res) => {
+    app.delete("/deletecar", logger,async (req, res) => {
       const id = req.query.id;
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
@@ -184,5 +177,5 @@ async function run() {
 
 run().catch(console.dir);
 app.listen(PORT, () => {
-  console.log("app is running on", PORT);
+  //console.log("app is running on", PORT);
 });
