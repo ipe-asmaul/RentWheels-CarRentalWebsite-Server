@@ -11,13 +11,14 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 //middlewire
-app.use(
-  cors({
-    origin: ["https://rent-wheel.netlify.app"],
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: ["https://rent-wheel.netlify.app"],
+//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+//     credentials: true,
+//   })
+// );
+app.use(cors())
 app.use(express.json());
 const logger = async (req, res, next) => {
   if (!req.headers.authorization) {
@@ -119,10 +120,11 @@ async function run() {
       const carColl = db.collection("cars");
       const bookColl = db.collection("bookings");
       const id = req.params.id;
-      const bookingQuery = { _id: new ObjectId(id) };
+      const bookingQuery = { carId: id };
       const alreadyBooked = await bookColl.findOne(bookingQuery);
       if (alreadyBooked) {
-        return;
+
+        return res.send({message: 'Car already Booked By another User'});
       }
       const booking = await bookColl.insertOne(req.body);
       const result = await carColl.updateOne(
