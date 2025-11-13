@@ -11,14 +11,14 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 //middlewire
-// app.use(
-//   cors({
-//     origin: ["https://rent-wheel.netlify.app"],
-//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-//     credentials: true,
-//   })
-// );
-app.use(cors())
+app.use(
+  cors({
+    origin: ["https://rent-wheel.netlify.app"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 const logger = async (req, res, next) => {
   if (!req.headers.authorization) {
