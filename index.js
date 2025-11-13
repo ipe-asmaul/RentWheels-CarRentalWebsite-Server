@@ -109,7 +109,7 @@ async function run() {
 
     app.get("/listings/", logger, async (req, res) => {
       const query = req.query.email;
-      console.log(query);
+      //console.log(query);
       const db = client.db("carsDB");
       const carColl = db.collection("cars");
       const result = await carColl.find({ email: query }).toArray();
